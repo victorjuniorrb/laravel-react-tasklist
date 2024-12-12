@@ -11,8 +11,8 @@ ARG APP_ROOT="/var/www/html"
 ARG NO_CACHE=""
 
 # Env to use on label and container description
-ARG LABEL_URL="https://github.com/cettufg/sgc-efg"
-ARG LABEL_DESC="Imagem do sgc-efg"
+ARG LABEL_URL="https://github.com/victorjuniorrb/laravel-react-tasklist"
+ARG LABEL_DESC="Laravel React Tasklist"
 
 #------------------------------------------------------------------------------------------
 # We need to build the Composer base to reuse packages we've installed
@@ -102,12 +102,12 @@ RUN npm install && \
 # It contains all the Composer packages,
 # and just the basic CLI "stuff" in order for us to run commands,
 # be that queues, migrations, tinker etc.
-FROM php:8.1-alpine AS cli
+FROM php:8.2-alpine AS cli
 
 LABEL org.opencontainers.image.source=${LABEL_URL}
 LABEL org.opencontainers.image.description=${LABEL_DESC}
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.vendor=CETT/UFG
+# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG PHP_EXTS
@@ -134,12 +134,12 @@ COPY --from=frontend ${APP_ROOT}/public ${APP_ROOT}/public
 
 #------------------------------------------------------------------------------------------
 # We need a stage which contains FPM to actually run and process requests to our PHP application.
-FROM php:8.1-fpm-alpine AS fpm_server
+FROM php:8.2-fpm-alpine AS fpm_server
 
 LABEL org.opencontainers.image.source=${LABEL_URL}
 LABEL org.opencontainers.image.description=${LABEL_DESC}
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.vendor=CETT/UFG
+# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG PHP_EXTS
@@ -184,7 +184,7 @@ FROM nginx:1.27-alpine AS web_server
 LABEL org.opencontainers.image.source=${LABEL_URL}
 LABEL org.opencontainers.image.description=${LABEL_DESC}
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.vendor=CETT/UFG
+# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG APP_ROOT
@@ -221,7 +221,7 @@ FROM cli AS cron
 LABEL org.opencontainers.image.source=${LABEL_URL}
 LABEL org.opencontainers.image.description=${LABEL_DESC}
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.vendor=CETT/UFG
+# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG APP_ROOT

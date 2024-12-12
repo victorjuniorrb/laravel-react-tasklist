@@ -3,15 +3,16 @@ services:
     laravel.fpm:
         image: ${REGISTRY}/fpm_server:${VERSION}
         environment:
-            APP_DEBUG: "false"
+            APP_DEBUG: "true"
         volumes:
             - 'storage_app:/var/www/html/storage/app'
         networks:
             - backend
         depends_on:
             - redis
-        env_file:
-            - ../stack.env
+            - mysql
+        env_file: 
+            - stack.env
 
     # Run the web server container for static content, and proxying to our FPM container
     laravel.web:
@@ -24,31 +25,24 @@ services:
             - 'storage_app:/var/www/html/storage/app'
         networks:
             - backend
-            - traefik-public
         depends_on:
             - laravel.fpm
-        labels:
-            - traefik.enable=true
-            - traefik.docker.network=traefik-public
-            - traefik.constraint-label=traefik-public
-            # https
-            - traefik.http.routers.${APP_TAG}-http.rule=Host(`${DOMAIN?Variable not set}`)
-            - traefik.http.routers.${APP_TAG}-http.entrypoints=http
-            - traefik.http.routers.${APP_TAG}-http.middlewares=https-redirect
-            # https
-            - traefik.http.routers.${APP_TAG}-https.rule=Host(`${DOMAIN?Variable not set}`)
-            - traefik.http.routers.${APP_TAG}-https.entrypoints=https
-            - traefik.http.routers.${APP_TAG}-https.tls=true
-            - traefik.http.routers.${APP_TAG}-https.tls.certresolver=le
-            - traefik.http.services.${APP_TAG}.loadbalancer.server.port=80
 
     # Run the Laravel Scheduler
     laravel.cron:
         image: ${REGISTRY}/cron:${VERSION}
         networks:
             - backend
-        env_file:
-            - ../stack.env
+        env_file: 
+            - stack.env
+
+    # For running things like migrations, and queue jobs
+    laravel.cli:
+        image: ${REGISTRY}/cli:${VERSION}
+        networks:
+            - backend
+        env_file: 
+            - stack.env
 
     # For running things like migrations, and queue jobs
     laravel.migrations:
@@ -56,11 +50,37 @@ services:
         networks:
             - backend
         entrypoint: ["php", "artisan", "migrate", "--force"]
-        env_file:
-            - ../stack.env
+        # Comando para froçar recriar e popluar a base de dados
+        # entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
+        depends_on:
+            mysql:
+                condition: service_healthy
+        env_file: 
+            - stack.env
+
+    mysql:
+        image: 'mysql/mysql-server:8.0'
+        environment:
+            TZ: America/Sao_Paulo
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+        volumes:
+            - 'mysql:/var/lib/mysql'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]                
+            retries: 3
+            timeout: 5s
 
     redis:
         image: 'redis:7-alpine'
+        environment:
+            TZ: America/Sao_Paulo
         volumes:
             - 'redis:/data'
         networks:
@@ -72,8 +92,7 @@ services:
 
 networks:
     backend:
-    traefik-public:
-        external: true
 volumes:
+    mysql:
     redis:
     storage_app:
