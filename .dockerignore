@@ -1,0 +1,24 @@
+### User-specific stuff:
+/.git*
+/.idea/workspace.xml
+.dockerignore
+
+### Other data
+public/storage
+storage/mysql-data
+storage/debugbar
+storage/framework
+storage/logs
+/node_modules
+/vendor
+bootstrap/cache
+!bootstrap/cache/.gitignore
+
+### Docker
+Makefile
+Dockerfile
+docker-compose*
+.env
+.env.backup
+.env.production
+stack.env

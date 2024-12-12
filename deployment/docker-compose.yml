@@ -1,0 +1,79 @@
+services:
+    # We need to run the FPM container for our application
+    laravel.fpm:
+        image: ${REGISTRY}/fpm_server:${VERSION}
+        environment:
+            APP_DEBUG: "false"
+        volumes:
+            - 'storage_app:/var/www/html/storage/app'
+        networks:
+            - backend
+        depends_on:
+            - redis
+        env_file:
+            - ../stack.env
+
+    # Run the web server container for static content, and proxying to our FPM container
+    laravel.web:
+        image: ${REGISTRY}/web_server:${VERSION}
+        ports:
+            - '8080:80'
+        environment:
+            FPM_HOST: "laravel.fpm:9000"
+        volumes:
+            - 'storage_app:/var/www/html/storage/app'
+        networks:
+            - backend
+            - traefik-public
+        depends_on:
+            - laravel.fpm
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.constraint-label=traefik-public
+            # https
+            - traefik.http.routers.${APP_TAG}-http.rule=Host(`${DOMAIN?Variable not set}`)
+            - traefik.http.routers.${APP_TAG}-http.entrypoints=http
+            - traefik.http.routers.${APP_TAG}-http.middlewares=https-redirect
+            # https
+            - traefik.http.routers.${APP_TAG}-https.rule=Host(`${DOMAIN?Variable not set}`)
+            - traefik.http.routers.${APP_TAG}-https.entrypoints=https
+            - traefik.http.routers.${APP_TAG}-https.tls=true
+            - traefik.http.routers.${APP_TAG}-https.tls.certresolver=le
+            - traefik.http.services.${APP_TAG}.loadbalancer.server.port=80
+
+    # Run the Laravel Scheduler
+    laravel.cron:
+        image: ${REGISTRY}/cron:${VERSION}
+        networks:
+            - backend
+        env_file:
+            - ../stack.env
+
+    # For running things like migrations, and queue jobs
+    laravel.migrations:
+        image: ${REGISTRY}/cli:${VERSION}
+        networks:
+            - backend
+        entrypoint: ["php", "artisan", "migrate", "--force"]
+        env_file:
+            - ../stack.env
+
+    redis:
+        image: 'redis:7-alpine'
+        volumes:
+            - 'redis:/data'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping" ]
+            retries: 5
+            timeout: 5s
+
+networks:
+    backend:
+    traefik-public:
+        external: true
+volumes:
+    redis:
+    storage_app:
