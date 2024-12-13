@@ -1,7 +1,7 @@
 # VERSION defines the version for the docker containers.
 # To build a specific set of containers with a version,
 # you can use the VERSION as an arg of the docker build command (e.g make docker VERSION=0.0.2)
-VERSION ?= main
+VERSION ?= frankonphp
 
 # REGISTRY defines the registry where we store our images.
 # To push to a specific registry,
@@ -13,13 +13,7 @@ REGISTRY ?= ghcr.io/victorjuniorrb/laravel-react-tasklist
 docker: docker-build docker-push
 
 docker-build:
-	docker build ../ -f ./Dockerfile --target cli -t ${REGISTRY}/cli:${VERSION}
-	docker build ../ -f ./Dockerfile --target cron -t ${REGISTRY}/cron:${VERSION}
-	docker build ../ -f ./Dockerfile --target fpm_server -t ${REGISTRY}/fpm_server:${VERSION}
-	docker build ../ -f ./Dockerfile --target web_server -t ${REGISTRY}/web_server:${VERSION}
+	docker build ../ -f ./Dockerfile -t ${REGISTRY}/laravel-react-tasklist:${VERSION}
 
 docker-push:
 	docker push ${REGISTRY}/cli:${VERSION}
-	docker push ${REGISTRY}/cron:${VERSION}
-	docker push ${REGISTRY}/fpm_server:${VERSION}
-	docker push ${REGISTRY}/web_server:${VERSION}
