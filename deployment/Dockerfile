@@ -169,6 +169,9 @@ COPY --chown=${USER}:${USER} deployment/php.ini ${PHP_INI_DIR}/conf.d/99-octane.
 # FrankenPHP embedded PHP configuration
 COPY --chown=${USER}:${USER} deployment/php.ini /lib/php.ini
 
+# Copy file with .env.exempla to .env on container layer to reduce ENV insercion on deploy
+COPY --chown=${USER}:${USER} .env.example .env
+
 RUN composer install \
     --classmap-authoritative \
     --no-interaction \

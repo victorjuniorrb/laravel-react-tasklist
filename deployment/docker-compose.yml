@@ -1,62 +1,49 @@
 services:
-    # We need to run the FPM container for our application
-    laravel.fpm:
-        image: ${REGISTRY}/fpm_server:${VERSION}
+    laravel:
+        image: ${DOCKER_IMAGE}:${VERSION}
         environment:
-            APP_DEBUG: "true"
+            CONTAINER_MODE: http
+            WITH_HORIZON: false
+            WITH_SCHEDULER: false
         volumes:
             - 'storage_app:/var/www/html/storage/app'
         networks:
+            - frontend
             - backend
+        ports:
+            - 8000:8000
         depends_on:
             - redis
             - mysql
         env_file: 
             - stack.env
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1m"
+                max-file: "5"
 
-    # Run the web server container for static content, and proxying to our FPM container
-    laravel.web:
-        image: ${REGISTRY}/web_server:${VERSION}
-        ports:
-            - '8080:80'
+    laravel_worker:
+        image: ${DOCKER_IMAGE}:${VERSION}
         environment:
-            FPM_HOST: "laravel.fpm:9000"
+            CONTAINER_MODE: worker
+            RUNNING_MIGRATIONS_AND_SEEDERS: true
+            WORKER_COMMAND: php /var/www/html/artisan queue:work
         volumes:
             - 'storage_app:/var/www/html/storage/app'
+        env_file:
+            - stack.env
         networks:
             - backend
         depends_on:
-            - laravel.fpm
-
-    # Run the Laravel Scheduler
-    laravel.cron:
-        image: ${REGISTRY}/cron:${VERSION}
-        networks:
-            - backend
-        env_file: 
-            - stack.env
-
-    # For running things like migrations, and queue jobs
-    laravel.cli:
-        image: ${REGISTRY}/cli:${VERSION}
-        networks:
-            - backend
-        env_file: 
-            - stack.env
-
-    # For running things like migrations, and queue jobs
-    laravel.migrations:
-        image: ${REGISTRY}/cli:${VERSION}
-        networks:
-            - backend
-        entrypoint: ["php", "artisan", "migrate", "--force"]
-        # Comando para froçar recriar e popluar a base de dados
-        # entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
-        depends_on:
-            mysql:
-                condition: service_healthy
-        env_file: 
-            - stack.env
+            - redis
+        healthcheck:
+            test: ["CMD", "true"]
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1m"
+                max-file: "5"
 
     mysql:
         image: 'mysql/mysql-server:8.0'
@@ -81,6 +68,7 @@ services:
         image: 'redis:7-alpine'
         environment:
             TZ: America/Sao_Paulo
+            ALLOW_EMPTY_PASSWORD: yes
         volumes:
             - 'redis:/data'
         networks:
@@ -91,6 +79,7 @@ services:
             timeout: 5s
 
 networks:
+    frontend:
     backend:
 volumes:
     mysql:
