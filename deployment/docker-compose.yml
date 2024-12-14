@@ -1,3 +1,11 @@
+x-logging:
+  &default-logging
+  driver: "json-file"
+  options:
+    max-size: "1m"
+    max-file: "1"
+    tag: "{{.Name}}"
+
 services:
     laravel:
         image: ${DOCKER_IMAGE}:${VERSION}
@@ -22,11 +30,7 @@ services:
                 condition: service_healthy
         env_file: 
             - stack.env
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "1m"
-                max-file: "5"
+        logging: *default-logging
 
     laravel_worker:
         image: ${DOCKER_IMAGE}:${VERSION}
@@ -47,11 +51,7 @@ services:
                 condition: service_healthy
         healthcheck:
             test: ["CMD", "true"]
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "1m"
-                max-file: "5"
+        logging: *default-logging
 
     mysql:
         image: mariadb:10.6.18-focal
@@ -72,6 +72,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 3
+        logging: *default-logging
 
     redis:
         image: 'redis:7-alpine'
@@ -88,6 +89,7 @@ services:
             test: ["CMD", "redis-cli", "ping" ]
             retries: 5
             timeout: 5s
+        logging: *default-logging
 
 networks:
     frontend:
