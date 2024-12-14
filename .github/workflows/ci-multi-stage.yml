@@ -1,4 +1,4 @@
-name: Docker Build & Publish
+name: Docker Build & Publish - Multi-stage
 
 on:
   push:
@@ -79,8 +79,8 @@ jobs:
         uses: vlaurin/action-ghcr-prune@v0.6.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          organization: $ORGANIZATION_VAR
-          container: $REPOSITORY_VAR/${{ matrix.target }}
+          organization: ${{ github.repository_owner }} 
+          container: ${{ env.IMAGE_NAME }}/${{ matrix.target }}
           dry-run: true
           prune-tags-regexes: |
             ^sha-
