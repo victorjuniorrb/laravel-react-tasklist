@@ -78,7 +78,7 @@ jobs:
       - name: Prune container registry /${{ matrix.target }}
         uses: vlaurin/action-ghcr-prune@v0.6.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REGISTRY_TOKEN }}
           organization: ${{ github.repository_owner }} 
           container: ${{ github.event.repository.name }}/${{ matrix.target }}
           dry-run: true
