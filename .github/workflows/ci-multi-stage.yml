@@ -80,7 +80,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           organization: ${{ github.repository_owner }} 
-          container: ${{ env.IMAGE_NAME }}/${{ matrix.target }}
+          container: ${{ github.event.repository.name }}/${{ matrix.target }}
           dry-run: true
           prune-tags-regexes: |
             ^sha-
