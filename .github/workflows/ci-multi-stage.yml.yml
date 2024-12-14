@@ -79,7 +79,7 @@ jobs:
         uses: vlaurin/action-ghcr-prune@v0.6.0
         with:
           token: ${{ secrets.REGISTRY_TOKEN }}
-          organization: ${{ github.repository_owner }} 
+          user: ${{ github.repository_owner }} 
           container: ${{ github.event.repository.name }}/${{ matrix.target }}
           dry-run: true
           prune-tags-regexes: |
