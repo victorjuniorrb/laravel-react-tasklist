@@ -32,7 +32,7 @@ services:
         restart: unless-stopped
         # não é necessário quando se tem um proxy na frente
         ports:
-            - '8080:80'
+            - '8000:80'
         environment:
             FPM_HOST: "laravel.fpm:9000"
         volumes:
