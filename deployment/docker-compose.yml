@@ -1,6 +1,7 @@
 services:
     laravel:
         image: ${DOCKER_IMAGE}:${VERSION}
+        restart: unless-stopped
         environment:
             CONTAINER_MODE: http
             WITH_HORIZON: false
@@ -29,9 +30,9 @@ services:
 
     laravel_worker:
         image: ${DOCKER_IMAGE}:${VERSION}
+        restart: unless-stopped
         environment:
             CONTAINER_MODE: worker
-            RUNNING_MIGRATIONS_AND_SEEDERS: true
             WORKER_COMMAND: php /var/www/html/artisan queue:work
         volumes:
             - 'storage_app:/var/www/html/storage/app'
