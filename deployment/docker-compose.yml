@@ -71,9 +71,9 @@ services:
         image: ${REGISTRY}/cli:${VERSION}
         networks:
             - backend
-        entrypoint: ["php", "artisan", "migrate", "--force"]
+        # entrypoint: ["php", "artisan", "migrate", "--force"]
         # Comando para froçar recriar e popluar a base de dados
-        # entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
+        entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
         depends_on:
             mysql:
                 condition: service_healthy
