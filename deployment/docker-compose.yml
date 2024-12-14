@@ -75,9 +75,11 @@ services:
 
     redis:
         image: 'redis:7-alpine'
+        restart: unless-stopped
         environment:
             TZ: America/Sao_Paulo
             ALLOW_EMPTY_PASSWORD: yes
+            REDIS_DISABLE_COMMANDS: 'FLUSHDB,FLUSHALL'
         volumes:
             - 'redis:/data'
         networks:
