@@ -1,7 +1,16 @@
+x-logging:
+  &default-logging
+  driver: "json-file"
+  options:
+    max-size: "1m"
+    max-file: "1"
+    tag: "{{.Name}}"
+
 services:
     # We need to run the FPM container for our application
     laravel.fpm:
         image: ${REGISTRY}/fpm_server:${VERSION}
+        restart: unless-stopped
         environment:
             APP_DEBUG: "true"
         volumes:
@@ -9,14 +18,19 @@ services:
         networks:
             - backend
         depends_on:
-            - redis
-            - mysql
+            redis:
+                condition: service_healthy
+            mysql:
+                condition: service_healthy
         env_file: 
             - stack.env
+        logging: *default-logging
 
     # Run the web server container for static content, and proxying to our FPM container
     laravel.web:
         image: ${REGISTRY}/web_server:${VERSION}
+        restart: unless-stopped
+        # não é necessário quando se tem um proxy na frente
         ports:
             - '8080:80'
         environment:
@@ -24,17 +38,24 @@ services:
         volumes:
             - 'storage_app:/var/www/html/storage/app'
         networks:
+            - frontend
             - backend
         depends_on:
             - laravel.fpm
+        logging: *default-logging
 
     # Run the Laravel Scheduler
     laravel.cron:
         image: ${REGISTRY}/cron:${VERSION}
+        restart: unless-stopped
         networks:
             - backend
+        depends_on:
+            mysql:
+                condition: service_healthy
         env_file: 
             - stack.env
+        logging: *default-logging
 
     # For running things like migrations, and queue jobs
     laravel.cli:
@@ -43,6 +64,7 @@ services:
             - backend
         env_file: 
             - stack.env
+        logging: *default-logging
 
     # For running things like migrations, and queue jobs
     laravel.migrations:
@@ -57,30 +79,36 @@ services:
                 condition: service_healthy
         env_file: 
             - stack.env
+        logging: *default-logging
 
     mysql:
-        image: 'mysql/mysql-server:8.0'
+        image: mariadb:10.6.18-focal
+        restart: unless-stopped
         environment:
             TZ: America/Sao_Paulo
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+            MARIADB_PASSWORD: '${DB_PASSWORD}'
+            MARIADB_DATABASE: '${DB_DATABASE}'
+            MARIADB_USER: '${DB_USERNAME}'
+            MARIADB_RANDOM_ROOT_PASSWORD: '1'
         volumes:
             - 'mysql:/var/lib/mysql'
         networks:
             - backend
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]                
-            retries: 3
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            start_period: 10s
+            interval: 10s
             timeout: 5s
+            retries: 3
+        logging: *default-logging
 
     redis:
         image: 'redis:7-alpine'
+        restart: unless-stopped
         environment:
             TZ: America/Sao_Paulo
+            ALLOW_EMPTY_PASSWORD: yes
+            REDIS_DISABLE_COMMANDS: 'FLUSHDB,FLUSHALL'
         volumes:
             - 'redis:/data'
         networks:
@@ -89,8 +117,10 @@ services:
             test: ["CMD", "redis-cli", "ping" ]
             retries: 5
             timeout: 5s
+        logging: *default-logging
 
 networks:
+    frontend:
     backend:
 volumes:
     mysql:
