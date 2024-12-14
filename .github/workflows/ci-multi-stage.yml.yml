@@ -85,5 +85,5 @@ jobs:
           prune-tags-regexes: |
             ^sha-
           prune-untagged: true
-          keep-younger-than: 3
-          keep-last: 2
+          # keep-younger-than: 3
+          keep-last: 5
