@@ -32,7 +32,7 @@ services:
         restart: unless-stopped
         # não é necessário quando se tem um proxy na frente
         ports:
-            - '8080:80'
+            - '8000:80'
         environment:
             FPM_HOST: "laravel.fpm:9000"
         volumes:
@@ -71,9 +71,9 @@ services:
         image: ${REGISTRY}/cli:${VERSION}
         networks:
             - backend
-        entrypoint: ["php", "artisan", "migrate", "--force"]
+        # entrypoint: ["php", "artisan", "migrate", "--force"]
         # Comando para froçar recriar e popluar a base de dados
-        # entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
+        entrypoint: ["php", "artisan", "migrate:fresh", "--seed"]
         depends_on:
             mysql:
                 condition: service_healthy
