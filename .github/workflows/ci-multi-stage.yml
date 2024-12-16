@@ -1,0 +1,89 @@
+name: Docker Build & Publish - Multi-stage
+
+on:
+  push:
+    branches:
+      - 'basic'
+      - 'main'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches:
+      - 'basic'
+      - 'main'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  docker:
+    name: Build Docker
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: cli
+          - target: cron
+          - target: fpm_server
+          - target: web_server
+      fail-fast: true
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Check out the repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker /${{ matrix.target }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.target }}
+          tags: |
+            type=ref,event=branch
+            type=sha,enable=true,priority=100,prefix=sha-,suffix=,format=short
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+          labels: |
+            org.opencontainers.image.url=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.target }}
+
+      - name: Build and Push /${{ matrix.target }}
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: deployment/Dockerfile
+          platforms: linux/amd64
+          target: ${{ matrix.target }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=
+
+      - name: Prune container registry /${{ matrix.target }}
+        uses: vlaurin/action-ghcr-prune@v0.6.0
+        with:
+          token: ${{ secrets.REGISTRY_TOKEN }}
+          user: ${{ github.repository_owner }} 
+          container: ${{ github.event.repository.name }}/${{ matrix.target }}
+          dry-run: false
+          prune-tags-regexes: |
+            ^sha-
+          prune-untagged: true
+          keep-younger-than: 7
+          keep-last: 5
