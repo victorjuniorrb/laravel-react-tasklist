@@ -34,7 +34,7 @@ SHELL ["/bin/sh", "-eou", "pipefail", "-c"]
 RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone
 
-    RUN apk update; \
+RUN apk update; \
     apk upgrade; \
     apk add --no-cache \
     curl \
@@ -65,7 +65,7 @@ RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
     memcached \
     igbinary \
     ldap \
-    swoole \
+    # swoole \
     && docker-php-source delete \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
