@@ -65,6 +65,7 @@ RUN apk update; \
     memcached \
     igbinary \
     ldap \
+    xlswriter \
     # swoole \
     && docker-php-source delete \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
