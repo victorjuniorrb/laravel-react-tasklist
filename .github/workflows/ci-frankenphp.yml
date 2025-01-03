@@ -20,7 +20,7 @@ jobs:
     name: Build Docker
     runs-on: ubuntu-22.04
     permissions:
-      packages: write
+      packages: admin
       contents: read
       attestations: write
       id-token: write
