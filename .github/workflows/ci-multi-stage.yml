@@ -60,6 +60,9 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           labels: |
             org.opencontainers.image.url=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.target }}
+            org.opencontainers.image.source=https://github.com/victorjuniorrb/laravel-react-tasklist
+            org.opencontainers.image.description=Laravel React Tasklist
+            org.opencontainers.image.licenses=MIT
 
       - name: Build and Push /${{ matrix.target }}
         id: push

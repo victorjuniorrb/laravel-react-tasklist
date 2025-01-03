@@ -10,10 +10,6 @@ ARG APP_ROOT="/var/www/html"
 # use --no-cache for disable cache on php build
 ARG NO_CACHE=""
 
-# Env to use on label and container description
-ARG LABEL_URL='https://github.com/victorjuniorrb/laravel-react-tasklist'
-ARG LABEL_DESC='Laravel React Tasklist'
-
 #------------------------------------------------------------------------------------------
 # We need to build the Composer base to reuse packages we've installed
 FROM composer:2.7 AS composer_base
@@ -104,11 +100,6 @@ RUN npm install && \
 # be that queues, migrations, tinker etc.
 FROM php:8.2-alpine AS cli
 
-LABEL org.opencontainers.image.source=$LABEL_URL
-LABEL org.opencontainers.image.description=$LABEL_DESC
-LABEL org.opencontainers.image.licenses=MIT
-# LABEL org.opencontainers.image.vendor=CETT/UFG
-
 # We need to declare that we want to use the args in this build step
 ARG PHP_EXTS
 ARG PHP_PECL_EXTS
@@ -135,11 +126,6 @@ COPY --from=frontend ${APP_ROOT}/public ${APP_ROOT}/public
 #------------------------------------------------------------------------------------------
 # We need a stage which contains FPM to actually run and process requests to our PHP application.
 FROM php:8.2-fpm-alpine AS fpm_server
-
-LABEL org.opencontainers.image.source=$LABEL_URL
-LABEL org.opencontainers.image.description=$LABEL_DESC
-LABEL org.opencontainers.image.licenses=MIT
-# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG PHP_EXTS
@@ -181,11 +167,6 @@ RUN php artisan event:cache && \
 # as well as serve any static content.
 FROM nginx:1.27-alpine AS web_server
 
-LABEL org.opencontainers.image.source=$LABEL_URL
-LABEL org.opencontainers.image.description=$LABEL_DESC
-LABEL org.opencontainers.image.licenses=MIT
-# LABEL org.opencontainers.image.vendor=CETT/UFG
-
 # We need to declare that we want to use the args in this build step
 ARG APP_ROOT
 
@@ -217,11 +198,6 @@ RUN mkdir -p ${APP_ROOT}/storage/app/public && \
 # We'll start with the CLI container as our base,
 # as we only need to override the CMD which the container starts with to point at cron
 FROM cli AS cron
-
-LABEL org.opencontainers.image.source=$LABEL_URL
-LABEL org.opencontainers.image.description=$LABEL_DESC
-LABEL org.opencontainers.image.licenses=MIT
-# LABEL org.opencontainers.image.vendor=CETT/UFG
 
 # We need to declare that we want to use the args in this build step
 ARG APP_ROOT
