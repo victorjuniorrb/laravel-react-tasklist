@@ -19,7 +19,7 @@ env:
 
 jobs:
   docker:
-    name: Build Docker
+    name: Build Images
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -60,10 +60,13 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
           labels: |
             org.opencontainers.image.url=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.target }}
+            org.opencontainers.image.source=https://github.com/victorjuniorrb/laravel-react-tasklist
+            org.opencontainers.image.description=Laravel React Tasklist
+            org.opencontainers.image.licenses=MIT
 
       - name: Build and Push /${{ matrix.target }}
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: deployment/Dockerfile
@@ -75,15 +78,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=
 
-      - name: Prune container registry /${{ matrix.target }}
-        uses: vlaurin/action-ghcr-prune@v0.6.0
+  prune-images:  
+    name: Prune old Images
+    runs-on: ubuntu-22.04
+    needs: docker
+    permissions:
+      packages: write
+    steps:  
+      - uses: vlaurin/action-ghcr-prune@v0.6.0
         with:
           token: ${{ secrets.REGISTRY_TOKEN }}
           user: ${{ github.repository_owner }} 
-          container: ${{ github.event.repository.name }}/${{ matrix.target }}
+          container: ${{ github.event.repository.name }}
           dry-run: false
           prune-tags-regexes: |
             ^sha-
           prune-untagged: true
           keep-younger-than: 7
-          keep-last: 5
+          keep-last: 3
