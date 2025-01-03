@@ -149,9 +149,10 @@ ENV BROADCAST_DRIVER=null
 COPY --chown=${USER}:${USER} . .
 COPY --chown=${USER}:${USER} --from=build ${ROOT}/public public
 
-# LABEL org.opencontainers.image.source=https://github.com/cettufg/Sistema-Custos
-# LABEL org.opencontainers.image.description="Imagem do Sistema Custos Produto"
-# LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.source=https://github.com/victorjuniorrb/laravel-react-tasklist
+LABEL org.opencontainers.image.description=laravel-react-tasklist
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.authors=victorjuniorrb
 
 RUN mkdir -p \
     storage/framework/sessions \
