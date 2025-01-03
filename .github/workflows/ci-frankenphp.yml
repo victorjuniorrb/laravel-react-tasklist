@@ -17,7 +17,7 @@ env:
 
 jobs:
   docker:
-    name: Build Docker
+    name: Build Image
     runs-on: ubuntu-22.04
     permissions:
       packages: write
@@ -77,8 +77,9 @@ jobs:
       #     keep-younger-than: 7
       #     keep-last: 3
   prune-images:  
-    name: Prune container registry
+    name: Prune Image Registry
     runs-on: ubuntu-22.04
+    needs: docker
     permissions:
       packages: write
     steps:  
