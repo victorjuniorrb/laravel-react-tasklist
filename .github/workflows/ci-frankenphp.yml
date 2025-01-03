@@ -85,7 +85,7 @@ jobs:
     steps:  
       - uses: vlaurin/action-ghcr-prune@v0.6.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REGISTRY_TOKEN }}
           user: ${{ github.repository_owner }} 
           container: ${{ github.event.repository.name }}
           dry-run: false
