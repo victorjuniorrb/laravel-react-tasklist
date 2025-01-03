@@ -74,5 +74,5 @@ jobs:
           prune-tags-regexes: |
             ^sha-
           prune-untagged: true
-          keep-younger-than: 7
-          keep-last: 3
+          keep-younger-than: 5
+          keep-last: 2
