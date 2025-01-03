@@ -63,7 +63,7 @@ jobs:
 
       - name: Build and Push /${{ matrix.target }}
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: deployment/Dockerfile
