@@ -1,6 +1,6 @@
 # Accepted values: 8.3 - 8.2
 ARG PHP_VERSION=8.2
-ARG FRANKENPHP_VERSION=1.3
+ARG FRANKENPHP_VERSION=1.4
 ARG COMPOSER_VERSION=2.2
 ARG NODE_VERSION=20-alpine
 
@@ -99,10 +99,10 @@ COPY --chown=${USER}:${USER} --from=vendor /usr/bin/composer /usr/bin/composer
 COPY --chown=${USER}:${USER} composer.json composer.lock ./
 
 RUN composer install \
-    --no-dev \
     --no-interaction \
     --no-autoloader \
-    --no-ansi
+    --no-ansi \
+    --no-dev
 
 ###########################################
 # Build frontend assets with NPM
@@ -176,6 +176,7 @@ COPY --chown=${USER}:${USER} .env.example .env
 
 RUN composer install \
     --classmap-authoritative \
+    --optimize-autoloader \
     --no-interaction \
     --no-ansi \
     --no-dev \
