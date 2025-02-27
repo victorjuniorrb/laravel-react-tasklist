@@ -37,6 +37,7 @@ RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
 RUN apk update; \
     apk upgrade; \
     apk add --no-cache \
+    tzdata \
     curl \
     wget \
     nano \
